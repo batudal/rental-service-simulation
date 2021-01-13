@@ -57,6 +57,10 @@ chart_months = []
 chart_newUsers = []
 chart_revenue = []
 chart_costs = []
+chart_totalCreditCost = []
+chart_inventoryValue = []
+chart_totalSalesCosts = []
+chart_creditpayback = []
 sales_revenue = 0
 chart_assetlist = []
 chart_inventory = []
@@ -109,6 +113,9 @@ class Counter():
         self.deviceCounter = 0
         self.termCounter = 0
         self.deviceCosts = 0
+        self.deviceCreditCost = 0
+        self.deviceSalesCost = 0
+        self.devicePayback = 0
 
 counter = Counter()
 
@@ -162,6 +169,9 @@ def create_device_instance(class_name,device_name,model_name,user_id):
         asset_list.append(device_id)
         #print('after append',asset_list)
         counter.deviceCosts += purchase_price
+        counter.deviceSalesCost += ((purchase_price*0.2/36)+(purchase_price*0.015))
+        counter.deviceCreditCost += purchase_price * 1.1
+        counter.devicePayback += (purchase_price*1.1/36)
         counter.deviceCounter += 1
         yield True
 
@@ -182,6 +192,9 @@ def firstMonth (user_count):
 
 def monthForward(month):
     counter.deviceCosts = 0
+    counter.deviceSalesCost = 0
+    counter.deviceCreditCosts = 0
+    counter.devicePayback = 0
     active_users = 0
     churn_count = 0
     referrals = 0
@@ -247,8 +260,11 @@ def monthForward(month):
     chart_months.append(month)
     chart_totalUsers.append(active_users)
     chart_newUsers.append(referrals)
-    chart_revenue.append(revenue - counter.deviceCosts + sales_revenue)
-    chart_costs.append(counter.deviceCosts)
+#    chart_revenue.append(revenue - counter.deviceCosts + sales_revenue)
+#    chart_costs.append(counter.deviceCosts)
+    chart_revenue.append(revenue - counter.devicePayback - counter.deviceSalesCost + sales_revenue)
+    chart_creditpayback.append(counter.devicePayback)
+    chart_totalCreditCost.append(counter.deviceCreditCost)    
     chart_assetlist.append(len(asset_list))
     chart_inventory.append(len(inventory))
     chart_sales_revenue.append(sales_revenue)
@@ -265,9 +281,17 @@ df2 = pd.DataFrame(list(chart_revenue),
                index = chart_months,
                columns =['Monthly Revenue in TRY']) 
 
-df3 = pd.DataFrame(list(chart_costs),
+#df3 = pd.DataFrame(list(chart_costs),
+#                index = chart_months,
+#                columns = ['Monthly Device Costs in TRY'])
+
+df3 = pd.DataFrame(list(chart_creditpayback),
                 index = chart_months,
-                columns = ['Monthly Device Costs in TRY'])
+                columns = ['Monthly Device Credit Payback in TRY']) 
+
+df7 = pd.DataFrame(list(chart_totalCreditCost),
+                index = chart_months,
+                columns = ['Total Credit Debt']            
 
 df4 = pd.DataFrame(list(chart_assetlist),
                 index = chart_months,
