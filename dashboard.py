@@ -9,7 +9,7 @@ import streamlit as st
 #Sidebar
 st.sidebar.header("Sidebar")
 st.sidebar.subheader("Growth parameters:")
-initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 100)
+initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 2)
 virality = st.sidebar.slider('Viral coefficient', 0.00,1.30,1.00)
 user_continues_rent = st.sidebar.slider('Retention rate', 0.00,1.00, 0.50)
 
@@ -111,23 +111,33 @@ def create_user_instance(class_name,instance_name):
         model_name = percentage_devices[model_modulo]
         globals()[name] = class_name(term,model_name)
         usernames.append(name)
+        print('user list', usernames)
         counter.userCounter += 1
         #availables = []
         
-        if len(inventory) > 0:
+        if len(inventory) >> 0:
+            print('inventory>0')
             for i in inventory:
                 print('inventory' + i)
                 if globals()[i].model == model_name and globals()[i].lifetime >= term:
+                   print('model var')
                    globals()[i].user_id = name
                    globals()[name].device_id = i
+                   print('envanterden usera verilen device', globals()[name].device_id)
                    inventory.remove(i)
+                else:
+                    initiate_device(1,model_name,name)
+                    globals()[name].device_id = asset_list[-1]
+                    print('usera verilen yeni device', globals()[name].device_id)
+                    print('yeni eklenen son device' + asset_list[-1])
         else:
             initiate_device(1,model_name,name)
             globals()[name].device_id = asset_list[-1]
-            #print('assets' + asset_list[-1])
+            print('usera verilen yeni device', globals()[name].device_id)
+            print('yeni eklenen son device' + asset_list[-1])
         yield True
 
-def create_device_instance(class_name,device_name,model_name, user_id):
+def create_device_instance(class_name,device_name,model_name,user_id):
     global asset_list
     while True:
         device_id = device_name + str(counter.deviceCounter)
@@ -136,7 +146,9 @@ def create_device_instance(class_name,device_name,model_name, user_id):
         #print(lifetime, purchase_price)
         
         globals()[device_id] = class_name(model_name,lifetime,purchase_price,user_id,device_id)
+        print('devicea atanan yeni user', globals()[device_id].user_id)
         asset_list.append(device_id)
+        #print('after append',asset_list)
         counter.deviceCosts += purchase_price
         counter.deviceCounter += 1
         yield True
@@ -162,7 +174,7 @@ def monthForward(month):
     churn_count = 0
     referrals = 0
     revenue = 0
-
+    print('month', month)
     # iterate over assets and take action
     for x in asset_list:
         device = globals()[x]
@@ -170,6 +182,7 @@ def monthForward(month):
         if device.lifetime <= 0 and device.user_id == 0:
             inventory.remove(x)
             asset_list.remove(x)
+            #print('after remove', asset_list)
             device.sell()
         else:
             device.reduceLifetime()
@@ -209,6 +222,7 @@ def monthForward(month):
                 # user leaves forever
                 if user.leftForever == False:
                     inventory.append(user.device_id)
+                    print('envantere gelen', user.device_id)
                     user.leftForever = True
                     globals()[user.device_id].user_id = 0
                     user.device_id = 0
