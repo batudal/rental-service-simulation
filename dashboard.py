@@ -10,32 +10,29 @@ import streamlit as st
 st.sidebar.header("Sidebar")
 st.sidebar.subheader("Growth parameters:")
 
-#initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 10)
+initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 10)
 #initial_users = 10
-initial_users = int(st.sidebar.number_input('Initial users:',10))
+#initial_users = int(st.sidebar.number_input('Initial users:',10))
 
-#virality = st.sidebar.slider('Viral coefficient', 0.00,1.30,1.00)
-#virality = 0
-virality = st.sidebar.number_input('Viral coefficient:',1.1)
+virality = st.sidebar.slider('Viral coefficient', 0.00,1.30,1.00)
+#virality = 1.05
+#virality = st.sidebar.number_input('Viral coefficient:',1.1)
 
 #user_continues_rent = 0.5
-user_continues_rent = st.sidebar.number_input('Retention rate:',0.5)
-#user_continues_rent = st.sidebar.slider('Retention rate', 0.00,1.00, 0.50)
+#user_continues_rent = st.sidebar.number_input('Retention rate:',0.5)
+user_continues_rent = st.sidebar.slider('Retention rate', 0.00,1.00, 0.50)
 
 st.sidebar.subheader("Graph parameters:")
 
-#length_in_months = st.sidebar.slider('Time period in months', 0, 120, 36)
-#length_in_months = 12
-length_in_months = int(st.sidebar.number_input('Months:',60))
+length_in_months = st.sidebar.slider('Time period in months', 0, 120, 36)
+#length_in_months = 120
+#length_in_months = int(st.sidebar.number_input('Months:',60))
 
 st.sidebar.subheader("Parameters Summary")
 st.sidebar.text("Initial Users: {}".format(initial_users))
 st.sidebar.text("Viral Coefficient: {}".format(virality))
 st.sidebar.text("Retention Rate: {}".format(user_continues_rent))
 st.sidebar.text("Period: {} months".format(length_in_months))
-
-
-
 
 #Mainpage
 st.image('./siradaki.png')
