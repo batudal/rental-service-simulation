@@ -9,18 +9,32 @@ import streamlit as st
 #Sidebar
 st.sidebar.header("Sidebar")
 st.sidebar.subheader("Growth parameters:")
-initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 2)
-virality = st.sidebar.slider('Viral coefficient', 0.00,1.30,1.00)
-user_continues_rent = st.sidebar.slider('Retention rate', 0.00,1.00, 0.50)
+
+#initial_users = st.sidebar.slider('Initial number of users', 0, 1000, 10)
+#initial_users = 10
+initial_users = int(st.sidebar.number_input('Initial users:',10))
+
+#virality = st.sidebar.slider('Viral coefficient', 0.00,1.30,1.00)
+#virality = 0
+virality = st.sidebar.number_input('Viral coefficient:',1.1)
+
+#user_continues_rent = 0.5
+user_continues_rent = st.sidebar.number_input('Retention rate:',0.5)
+#user_continues_rent = st.sidebar.slider('Retention rate', 0.00,1.00, 0.50)
 
 st.sidebar.subheader("Graph parameters:")
-length_in_months = st.sidebar.slider('Time period in months', 0, 120, 36)
+
+#length_in_months = st.sidebar.slider('Time period in months', 0, 120, 36)
+#length_in_months = 12
+length_in_months = int(st.sidebar.number_input('Months:',60))
 
 st.sidebar.subheader("Parameters Summary")
 st.sidebar.text("Initial Users: {}".format(initial_users))
 st.sidebar.text("Viral Coefficient: {}".format(virality))
 st.sidebar.text("Retention Rate: {}".format(user_continues_rent))
 st.sidebar.text("Period: {} months".format(length_in_months))
+
+
 
 
 #Mainpage
@@ -49,6 +63,7 @@ chart_costs = []
 sales_revenue = 0
 chart_assetlist = []
 chart_inventory = []
+chart_sales_revenue = []
 
 class Device(object):
     def __init__(self, model, lifetime, purchase_price,user_id,id):
@@ -61,7 +76,7 @@ class Device(object):
 
     def sell (self):
         global sales_revenue
-        sales_revenue += self.purchase_price / 2
+        sales_revenue += self.purchase_price * 0.35
 
     def reduceLifetime (self):
          self.lifetime = self.lifetime -1
@@ -111,30 +126,30 @@ def create_user_instance(class_name,instance_name):
         model_name = percentage_devices[model_modulo]
         globals()[name] = class_name(term,model_name)
         usernames.append(name)
-        print('user list', usernames)
+        #print('user list', usernames)
         counter.userCounter += 1
         #availables = []
         
         if len(inventory) >> 0:
-            print('inventory>0')
+            #print('inventory>0')
             for i in inventory:
-                print('inventory' + i)
+                #print('inventory' + i)
                 if globals()[i].model == model_name and globals()[i].lifetime >= term:
-                   print('model var')
+                   #print('model var')
                    globals()[i].user_id = name
                    globals()[name].device_id = i
-                   print('envanterden usera verilen device', globals()[name].device_id)
+                   #print('envanterden usera verilen device', globals()[name].device_id)
                    inventory.remove(i)
                 else:
                     initiate_device(1,model_name,name)
                     globals()[name].device_id = asset_list[-1]
-                    print('usera verilen yeni device', globals()[name].device_id)
-                    print('yeni eklenen son device' + asset_list[-1])
+                    #print('usera verilen yeni device', globals()[name].device_id)
+                    #print('yeni eklenen son device' + asset_list[-1])
         else:
             initiate_device(1,model_name,name)
             globals()[name].device_id = asset_list[-1]
-            print('usera verilen yeni device', globals()[name].device_id)
-            print('yeni eklenen son device' + asset_list[-1])
+            #print('usera verilen yeni device', globals()[name].device_id)
+            #print('yeni eklenen son device' + asset_list[-1])
         yield True
 
 def create_device_instance(class_name,device_name,model_name,user_id):
@@ -146,7 +161,7 @@ def create_device_instance(class_name,device_name,model_name,user_id):
         #print(lifetime, purchase_price)
         
         globals()[device_id] = class_name(model_name,lifetime,purchase_price,user_id,device_id)
-        print('devicea atanan yeni user', globals()[device_id].user_id)
+        #print('devicea atanan yeni user', globals()[device_id].user_id)
         asset_list.append(device_id)
         #print('after append',asset_list)
         counter.deviceCosts += purchase_price
@@ -174,7 +189,8 @@ def monthForward(month):
     churn_count = 0
     referrals = 0
     revenue = 0
-    print('month', month)
+    #print('month', month)
+
     # iterate over assets and take action
     for x in asset_list:
         device = globals()[x]
@@ -222,7 +238,7 @@ def monthForward(month):
                 # user leaves forever
                 if user.leftForever == False:
                     inventory.append(user.device_id)
-                    print('envantere gelen', user.device_id)
+                    #print('envantere gelen', user.device_id)
                     user.leftForever = True
                     globals()[user.device_id].user_id = 0
                     user.device_id = 0
@@ -238,6 +254,7 @@ def monthForward(month):
     chart_costs.append(counter.deviceCosts)
     chart_assetlist.append(len(asset_list))
     chart_inventory.append(len(inventory))
+    chart_sales_revenue.append(sales_revenue)
 
 firstMonth(initial_users)
 for i in range(length_in_months):
@@ -263,11 +280,19 @@ df5 = pd.DataFrame(list(chart_inventory),
                 index = chart_months,
                 columns = ['Inventory count monthly'] )
 
+df6 = pd.DataFrame(list(chart_sales_revenue),
+                index = chart_months,
+                columns = ['Sales revenue cumulative'])
+
 st.line_chart(df)
-st.subheader("Revenue in TRY")
+st.subheader("Revenue(TRY)")
 st.line_chart(df2)
+st.subheader("Device Costs(TRY)")
 st.line_chart(df3)
-st.line_chart(df4)
-st.line_chart(df5)
+st.subheader("Total Assets")
+st.bar_chart(df4)
+st.subheader("Inventory Assets")
+st.bar_chart(df5)
+st.line_chart(df6)
 
 
