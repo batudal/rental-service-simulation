@@ -74,6 +74,7 @@ class Device(object):
         self.model = model
         self.user_id = user_id
         self.id = id
+        self.credit_duration = 36
 
     def sell (self):
         global sales_revenue
@@ -171,7 +172,7 @@ def create_device_instance(class_name,device_name,model_name,user_id):
         counter.deviceCosts += purchase_price
         counter.deviceSalesCost += ((purchase_price*0.2/36)+(purchase_price*0.015))
         counter.deviceCreditCost += purchase_price * 1.1
-        counter.devicePayback += (purchase_price*1.1/36)
+        #counter.devicePayback += (purchase_price*1.1/36)
         counter.deviceCounter += 1
         yield True
 
@@ -194,7 +195,7 @@ def monthForward(month):
     counter.deviceCosts = 0
     counter.deviceSalesCost = 0
     counter.deviceCreditCosts = 0
-    counter.devicePayback = 0
+    monthly_credit_payback = 0
     active_users = 0
     churn_count = 0
     referrals = 0
@@ -204,7 +205,7 @@ def monthForward(month):
     # iterate over assets and take action
     for x in asset_list:
         device = globals()[x]
-        
+        # omru bitmedi
         if device.lifetime <= 0 and device.user_id == 0:
             inventory.remove(x)
             asset_list.remove(x)
@@ -213,6 +214,9 @@ def monthForward(month):
         else:
             device.reduceLifetime()
             device.depreciate()
+            if device.credit_duration > 0:
+                device.credit_duration -= 1
+                monthly_credit_payback -= device.purchase_price * 1.1 / 36
 
     # iterate over users and take action
     for i in range(len(usernames)):
@@ -262,8 +266,8 @@ def monthForward(month):
     chart_newUsers.append(referrals)
 #    chart_revenue.append(revenue - counter.deviceCosts + sales_revenue)
 #    chart_costs.append(counter.deviceCosts)
-    chart_revenue.append(revenue - counter.devicePayback - counter.deviceSalesCost + sales_revenue)
-    chart_creditpayback.append(counter.devicePayback)
+    chart_revenue.append(revenue - monthly_credit_payback - counter.deviceSalesCost + sales_revenue)
+    chart_creditpayback.append(monthly_credit_payback)
     chart_totalCreditCost.append(counter.deviceCreditCost)    
     chart_assetlist.append(len(asset_list))
     chart_inventory.append(len(inventory))
@@ -291,7 +295,7 @@ df3 = pd.DataFrame(list(chart_creditpayback),
 
 df7 = pd.DataFrame(list(chart_totalCreditCost),
                 index = chart_months,
-                columns = ['Total Credit Debt']            
+                columns = ['Total Credit Debt'])          
 
 df4 = pd.DataFrame(list(chart_assetlist),
                 index = chart_months,
