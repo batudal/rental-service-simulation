@@ -3,11 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
-#sidebar
-constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,10,1)
-viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,0.8)
-
-# 1 per unique device
 class Device:
     def __init__(self):
         self.device_model = data.nextDevice()
@@ -34,7 +29,6 @@ class Device:
         else:
             self.inventory_value = self.inventory_value * (1-(1/self.lifetime))
         
-# 1 per unique user
 class User:
     def __init__(self):
         self.term = data.nextTerm()
@@ -53,7 +47,7 @@ class User:
                 data.createMembership()
         elif random.random() < viral_coefficient:
             data.createMembership()
-# 1 per simulation
+
 class Data:
     def __init__(self):
         self.table = pd.read_csv('Siradaki_Price_List.csv',sep=';')
@@ -101,10 +95,6 @@ class Data:
             self.id_dictionary[user_id] = new_device_id         
         
         self.createUser()
-
-        #virality
-        #if random.random() <= viral_coefficient:
-        #    data.createMembership()
 
     def createUser(self):
         user_id = "user_" + str(self.users_total)
@@ -171,11 +161,12 @@ class Charts:
         self.balance = []
         self.user_count = []
         self.inventory_count = []
+        self.month_count = []
 
     def updateCharts (self):
         self.device_sales.append(finance.device_sales)
         self.rent_income.append(finance.rent_income)
-        self.credit_costs.append(finance.credit_costs)
+        self.credit_costs.append(-finance.credit_costs)
         self.balance.append(finance.device_sales + finance.rent_income - finance.credit_costs)
         self.user_count.append(data.users_total)
         self.inventory_count.append(len(data.inventory))
@@ -184,91 +175,62 @@ finance = Finance()
 data = Data()
 charts = Charts()
 
+st.sidebar.subheader('Parameters')
+constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,10,1)
+viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,0.8)
+
 for i in range(48):
+    charts.month_count.append(i)
     charts.updateCharts()
     data.devicesLifetime()
     data.userJobs()
     data.inventoryCheck()
     for j in range(constant_user_monthly):
         data.createMembership()
-        #if viral_coefficient >= 1:
-        #    data.createMembership()
-        #    if random.random() < viral_coefficient-1:
-        #        data.createMembership()
-        #elif random.random() < viral_coefficient:
-        #    data.createMembership()
-
-#data.createMembership()
-#
-#for i in range(60):
-#    charts.updateCharts()
-#    data.devicesLifetime()
-#    data.userJobs()
-#    data.inventoryCheck()
-#    for j in range(20):
-#        if viral_coefficient >= 1:
-#            data.createMembership()
-#            if random.random() < viral_coefficient-1:
-#                data.createMembership()
-#        elif random.random() < viral_coefficient:
-#            data.createMembership()
-
-#mainpage
-
 
 st.image('./siradaki.png')
 st.text("Welcome to Siradaki Dashboard.\n\nConfigure the chart by changing parameters on the sidepanel.")
 
-df_device_sales = pd.DataFrame(charts.device_sales)
-df_rent_income = pd.DataFrame(charts.rent_income)
-df_credit_costs = pd.DataFrame(charts.credit_costs)
-df_balance = pd.DataFrame(charts.balance)
-df_all = pd.DataFrame(list(zip(charts.device_sales,charts.rent_income,charts.credit_costs,charts.balance)),
-                        columns = ['Device sales','Rent','Credit costs','Total'])
-df_user_count = pd.DataFrame(charts.user_count)
-df_inventory_count = pd.DataFrame(charts.inventory_count)
+df_device_sales = pd.DataFrame(list(charts.device_sales), index = charts.month_count, columns = ["Device sales income (TRY)"])
+df_rent_income = pd.DataFrame(list(charts.rent_income), index = charts.month_count, columns = ["Rent income (TRY)"])
+df_credit_costs = pd.DataFrame(list(charts.credit_costs), index = charts.month_count, columns = ["Credit costs (TRY)"])
+df_balance = pd.DataFrame(list(charts.balance), index = charts.month_count, columns = ["Total balance (TRY)"])
+df_all = pd.DataFrame(list(zip(charts.device_sales,charts.rent_income,charts.credit_costs)),
+                        columns = ['Device sales income','Rent income','Credit costs'])
+df_user_count = pd.DataFrame(list(charts.user_count), columns = ["Number of users"])
+df_inventory_count = pd.DataFrame(list(charts.inventory_count), columns = ["Number of idle devices"] )
 
+st.header("Accounting")
 col1, col2, col3 = st.beta_columns(3)
 col4, col5 = st.beta_columns(2)
 
+st.header("Counters")
+col6, col7 = st.beta_columns(2)
+
 with col1:
-    st.subheader("Income from rents")
+    st.subheader("Cumulative Income from Rents")
     st.line_chart(df_rent_income)
     
 with col2:
-    st.subheader("Credit costs")
+    st.subheader("Cumulative Credit Costs")
     st.line_chart(df_credit_costs)
 
 with col3:
-    st.subheader("Device Sales")
+    st.subheader("Cumulative Device Sales")
     st.line_chart(df_device_sales)
 
 with col4:
-    st.subheader("Balance")
+    st.subheader("Cumulative Balance")
     st.line_chart(df_balance)    
 
 with col5:
-    st.subheader("ALL")
-    st.line_chart(df_all)       
+    st.subheader("Cumulative Balance Sheet")
+    st.bar_chart(df_all)
 
-#col3, col4 = st.beta_columns(2)
+with col6:
+    st.subheader("Cumulative User count")
+    st.bar_chart(df_user_count)
 
-
-#with col1:
-#    st.subheader("Inventory count")
-#    st.bar_chart(df_inventory_count)
-#
-#with col2:
-#    st.subheader("ALL")
-#    st.line_chart(df_all)
-#
-#with col3:
-#    st.subheader("User count")
-#    st.line_chart(df_user_count)
-#
-#with col4:
-#    st.subheader("Income from device sales")
-#    st.line_chart(df_device_sales)
-
-
-
+with col7:
+    st.subheader("Cumulative Inventory ")
+    st.bar_chart(df_inventory_count)
