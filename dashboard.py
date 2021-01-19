@@ -1,8 +1,11 @@
 import random
-#import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
+
+#sidebar
+constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,10,1)
+viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,0.8)
 
 # 1 per unique device
 class Device:
@@ -37,10 +40,19 @@ class User:
         self.term = data.nextTerm()
         self.membership_type = self.term
         self.left_forever = False
+        self.canRefer = True
 
     def reduceTerm (self):
         self.term = self.term -1
 
+    def refer (self):
+        self.canRefer = False
+        if viral_coefficient >= 1:
+            data.createMembership()
+            if random.random() < viral_coefficient-1:
+                data.createMembership()
+        elif random.random() < viral_coefficient:
+            data.createMembership()
 # 1 per simulation
 class Data:
     def __init__(self):
@@ -54,7 +66,6 @@ class Data:
         self.inventory = {}
         self.inventory_at_user = {}
         self.left_user = 0
-        self.viral_coefficient = 0.5
     
     def nextDevice(self):
         return str(self.devices[self.devices_total % 100])
@@ -91,6 +102,10 @@ class Data:
         
         self.createUser()
 
+        #virality
+        #if random.random() <= viral_coefficient:
+        #    data.createMembership()
+
     def createUser(self):
         user_id = "user_" + str(self.users_total)
         globals()[user_id] = User()
@@ -111,7 +126,7 @@ class Data:
             if globals()[device_id].lifetime <= 0:
                 globals()[device_id].sell()
                 del self.inventory[device_id]
-
+                
     def userJobs(self):
         for user_id in list(self.id_dictionary):
             device_id = self.id_dictionary[user_id]
@@ -139,7 +154,8 @@ class Data:
                     del self.id_dictionary[user_id]
 
                     #finance.rent_income += device_instance.rentalPrice(user_instance.membership_type)        
-        
+            if user_instance.canRefer:
+                user_instance.refer()
 # sigorta + bakim eklenecek
 class Finance:
     def __init__(self):
@@ -153,50 +169,106 @@ class Charts:
         self.rent_income = []
         self.credit_costs = []
         self.balance = []
+        self.user_count = []
+        self.inventory_count = []
 
     def updateCharts (self):
         self.device_sales.append(finance.device_sales)
         self.rent_income.append(finance.rent_income)
         self.credit_costs.append(finance.credit_costs)
         self.balance.append(finance.device_sales + finance.rent_income - finance.credit_costs)
+        self.user_count.append(data.users_total)
+        self.inventory_count.append(len(data.inventory))
 
 finance = Finance()
 data = Data()
 charts = Charts()
 
-for i in range(60):
+for i in range(48):
     charts.updateCharts()
     data.devicesLifetime()
     data.userJobs()
     data.inventoryCheck()
-    for j in range(20):
+    for j in range(constant_user_monthly):
         data.createMembership()
-        if data.viral_coefficient >= 1:
-            data.createMembership()
-            if random.random() < data.viral_coefficient-1:
-                data.createMembership()
-        elif random.random() < data.viral_coefficient:
-            data.createMembership()
+        #if viral_coefficient >= 1:
+        #    data.createMembership()
+        #    if random.random() < viral_coefficient-1:
+        #        data.createMembership()
+        #elif random.random() < viral_coefficient:
+        #    data.createMembership()
+
+#data.createMembership()
+#
+#for i in range(60):
+#    charts.updateCharts()
+#    data.devicesLifetime()
+#    data.userJobs()
+#    data.inventoryCheck()
+#    for j in range(20):
+#        if viral_coefficient >= 1:
+#            data.createMembership()
+#            if random.random() < viral_coefficient-1:
+#                data.createMembership()
+#        elif random.random() < viral_coefficient:
+#            data.createMembership()
+
+#mainpage
+
+
+st.image('./siradaki.png')
+st.text("Welcome to Siradaki Dashboard.\n\nConfigure the chart by changing parameters on the sidepanel.")
 
 df_device_sales = pd.DataFrame(charts.device_sales)
-st.subheader("Income from device sales")
-st.line_chart(df_device_sales)
-
 df_rent_income = pd.DataFrame(charts.rent_income)
-st.subheader("Income from rents")
-st.line_chart(df_rent_income)
-
 df_credit_costs = pd.DataFrame(charts.credit_costs)
-st.subheader("Credit costs")
-st.line_chart(df_credit_costs)
-
 df_balance = pd.DataFrame(charts.balance)
-st.subheader("Balance")
-st.line_chart(df_balance)
-
 df_all = pd.DataFrame(list(zip(charts.device_sales,charts.rent_income,charts.credit_costs,charts.balance)),
                         columns = ['Device sales','Rent','Credit costs','Total'])
-st.subheader("ALL")
-st.line_chart(df_all)
+df_user_count = pd.DataFrame(charts.user_count)
+df_inventory_count = pd.DataFrame(charts.inventory_count)
 
-data.viral_coefficient = st.sidebar.slider('Viral coefficient', 0.00,2.00,1.00)
+col1, col2, col3 = st.beta_columns(3)
+col4, col5 = st.beta_columns(2)
+
+with col1:
+    st.subheader("Income from rents")
+    st.line_chart(df_rent_income)
+    
+with col2:
+    st.subheader("Credit costs")
+    st.line_chart(df_credit_costs)
+
+with col3:
+    st.subheader("Device Sales")
+    st.line_chart(df_device_sales)
+
+with col4:
+    st.subheader("Balance")
+    st.line_chart(df_balance)    
+
+with col5:
+    st.subheader("ALL")
+    st.line_chart(df_all)       
+
+#col3, col4 = st.beta_columns(2)
+
+
+#with col1:
+#    st.subheader("Inventory count")
+#    st.bar_chart(df_inventory_count)
+#
+#with col2:
+#    st.subheader("ALL")
+#    st.line_chart(df_all)
+#
+#with col3:
+#    st.subheader("User count")
+#    st.line_chart(df_user_count)
+#
+#with col4:
+#    st.subheader("Income from device sales")
+#    st.line_chart(df_device_sales)
+
+
+
