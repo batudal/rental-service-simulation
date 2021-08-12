@@ -251,9 +251,11 @@ finance = Finance()
 data = Data()
 charts = Charts()
 
-st.sidebar.subheader('Parameters')
-constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,100,100)
-viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,1.0)
+#st.sidebar.subheader('Parameters')
+#constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,100,100)
+constant_user_monthly = 100
+viral_coefficient = 1
+#viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,1.0)
 
 for i in range(60):
     charts.month_count.append(i)
@@ -266,8 +268,8 @@ for i in range(60):
     charts.updateCharts()
 
 
-st.image('./siradaki.png')
-st.text("Welcome to Siradaki Dashboard.\n\nConfigure the chart by changing parameters on the sidepanel.")
+#st.image('./siradaki.png')
+#st.text("Welcome to Siradaki Dashboard.\n\nConfigure the chart by changing parameters on the sidepanel.")
 
 df_device_sales = pd.DataFrame(list(charts.device_sales), index = charts.month_count, columns = ["Device sales income (TRY)"])
 df_rent_income = pd.DataFrame(list(charts.rent_income), index = charts.month_count, columns = ["Rent income (TRY)"])
@@ -284,47 +286,47 @@ df_mega = pd.DataFrame(list(zip(charts.device_sales,charts.rent_income,charts.cr
 
 
 
-st.header("Accounting")
-col1, col2, col3 = st.beta_columns(3)
-col4, col5, col8 = st.beta_columns(3)
+#st.header("Accounting")
+#col1, col2, col3 = st.beta_columns(3)
+#col4, col5, col8 = st.beta_columns(3)
 
-st.header("Counters")
-col6, col7 = st.beta_columns(2)
+#st.header("Counters")
+#col6, col7 = st.beta_columns(2)
 
-with col1:
-    st.subheader("Cumulative Income from Rents")
-    st.line_chart(df_rent_income)
+#with col1:
+#    st.subheader("Cumulative Income from Rents")
+#    st.line_chart(df_rent_income)
     
-with col2:
-    st.subheader("Cumulative Credit Costs")
-    st.line_chart(df_credit_costs)
+#with col2:
+#    st.subheader("Cumulative Credit Costs")
+#    st.line_chart(df_credit_costs)
 
-with col3:
-    st.subheader("Cumulative Device Sales")
-    st.line_chart(df_device_sales)
+#with col3:
+#    st.subheader("Cumulative Device Sales")
+#    st.line_chart(df_device_sales)
 
-with col4:
-    st.subheader("Cumulative Balance")
-    st.line_chart(df_balance)    
+#with col4:
+#    st.subheader("Cumulative Balance")
+#    st.line_chart(df_balance)    
 
-with col5:
-    st.subheader("Cumulative Balance Sheet")
-    st.bar_chart(df_all)
+#with col5:
+#    st.subheader("Cumulative Balance Sheet")
+#    st.bar_chart(df_all)
 
-with col6:
-    st.subheader("Cumulative User count")
-    st.bar_chart(df_user_count)
+#with col6:
+#    st.subheader("Cumulative User count")
+#    st.bar_chart(df_user_count)
 
-with col7:
-    st.subheader("Cumulative Inventory ")
-    st.bar_chart(df_inventory_count)
+#with col7:
+#    st.subheader("Cumulative Inventory ")
+#    st.bar_chart(df_inventory_count)
 
-with col8:
-    st.subheader("Operating Costs")
-    st.bar_chart(df_operating_costs)
-
-
+#with col8:
+#    st.subheader("Operating Costs")
+#    st.bar_chart(df_operating_costs)
 
 
-df_mega.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\deneme46.csv', index = True)
+
+
+df_mega.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\deneme47.csv', index = True)
 #df_cont.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\control7.csv', index = True)

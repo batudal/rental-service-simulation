@@ -26,14 +26,13 @@ class Device:
         self.rental_price = int(data.table.loc[data.table[data.table['Model Name'] == self.device_model].index, '{}'.format(term)])
 
     def reduceLifetime (self):
-        if self.lifetime >> 0:
          self.lifetime = self.lifetime -1
 
     def depreciate (self):
         if self.lifetime == 0:
             self.inventory_value = 0
         else:
-            self.inventory_value -= (self.purchase_price * (1/self.constant_lifetime))
+            self.inventory_value = self.inventory_value * (1-(1/self.constant_lifetime))
         
 class User:
     def __init__(self):
@@ -77,7 +76,10 @@ class Data:
         return int(self.terms[self.users_total % 100])
     
     def createMembership(self):
-        new_user_id = self.createUser()
+        user_id = "user_" + str(self.users_total)
+        #new_device_id = "device_" + str(self.devices_total)
+        
+        finance.cac += 150
 
         if len(list(self.inventory)) >> 0: 
             devices_that_match = []
@@ -87,57 +89,56 @@ class Data:
                     devices_that_match.append(device_id)
             
             if len(devices_that_match) >> 0:
-                self.id_dictionary[new_user_id] = devices_that_match[0]
+                self.id_dictionary[user_id] = devices_that_match[0]
                 del self.inventory[devices_that_match[0]]
                 self.inventory_at_user[devices_that_match[0]] = self.nextDevice()
+                new_device_id = devices_that_match[0]
                 finance.delivery_cost += 35
                 finance.packaging_cost += 30
 
             else:     
-                new_device_id = self.createDevice()
+                self.createDevice()
                 self.inventory_at_user[new_device_id] = self.nextDevice()
-                self.id_dictionary[new_user_id] = new_device_id
+                self.id_dictionary[user_id] = new_device_id
+                
+                print(self.id_dictionary)
+
                 finance.delivery_cost += 35
                 finance.packaging_cost += 30
                         
         else:
-            new_device_id = self.createDevice()
+            self.createDevice()
             self.inventory_at_user[new_device_id] = self.nextDevice()
-            self.id_dictionary[new_user_id] = new_device_id   
+            self.id_dictionary[user_id] = new_device_id   
             finance.delivery_cost += 35
             finance.packaging_cost += 30      
         
-        #print(self.id_dictionary)
+        self.createUser()
 
     def createUser(self):
         user_id = "user_" + str(self.users_total)
         globals()[user_id] = User()
         self.users_total += 1
-        finance.credit_check_cost += 30
-        finance.cac += 150
-        return user_id
-
+        finance.credit_check_cost += 10
 
     def createDevice(self):
         device_id = "device_" + str(self.devices_total)
         globals()[device_id] = Device()
         self.devices_total += 1
-        return device_id
 
     def devicesLifetime(self):
         for x in range(self.devices_total):
             device_id = 'device_' + str(x)
-            device_instance = globals()[device_id]       
-
             globals()[device_id].reduceLifetime()
-            globals()[device_id].depreciate()
-
-            finance.asset_value += device_instance.inventory_value
-
+                        
             #for control:
             global df_cont
             global dek
             
+            device_instance = globals()[device_id]       
+            #finance.asset_value += device_instance.inventory_value
+            #device_instance.depreciate()
+
     #pay per device monthly credit payback, reduce monthly payment from device credit payback, update total credit debt
             if device_instance.credit_payback_duration > 0:
                 finance.credit_costs += device_instance.monthly_credit_payback
@@ -252,8 +253,8 @@ data = Data()
 charts = Charts()
 
 st.sidebar.subheader('Parameters')
-constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,100,100)
-viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,1.0)
+constant_user_monthly = st.sidebar.slider('Monthly users added:', 0,100,1)
+viral_coefficient = st.sidebar.slider('Viral coefficient:', 0.00,1.50,0.2)
 
 for i in range(60):
     charts.month_count.append(i)
@@ -326,5 +327,5 @@ with col8:
 
 
 
-df_mega.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\deneme46.csv', index = True)
-#df_cont.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\control7.csv', index = True)
+#df_mega.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\deneme44.csv', index = True)
+#df_cont.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\control6.csv', index = True)
