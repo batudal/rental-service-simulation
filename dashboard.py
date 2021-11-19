@@ -322,9 +322,3 @@ with col7:
 with col8:
     st.subheader("Operating Costs")
     st.bar_chart(df_operating_costs)
-
-
-
-
-df_mega.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\deneme46.csv', index = True)
-#df_cont.to_csv(r'C:\Users\zeynep.tutengil\Desktop\bazonk\exports\control7.csv', index = True)
